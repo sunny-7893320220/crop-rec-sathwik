@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway:500');
+
+/* body {
+  background: #38ee27; 
+  display: grid;
+  height: 100vh;
+  margin: 0;
+  place-items: center;
+  padding: 1rem;
+} */
+
+#cbutton {
+  -webkit-appearance: none;  
+  background: linear-gradient(to right, #042c17 0%, #fceeb5 50%, #7e160d 100%);
+  background-size: 500%;
+  border: none;
+  border-radius: 6rem;
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+  color: #fff; /* $white */
+  cursor: pointer;
+  font: 1em 'Raleway', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 3rem;
+  letter-spacing: .05em;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  width: 100%;
+
+}
+
+#cbutton:hover {
+  animation-name: gradient;
+  animation-duration: 2s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
