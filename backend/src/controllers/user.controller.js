@@ -27,7 +27,7 @@ const generateAccessTokenAndRefreshToken = async (userid) => {
 };
 
 // Function to register a new user
-const registeruser = asyncHandler(async (req, res) => {
+const signupUser = asyncHandler(async (req, res) => {
   const { farmersName, farmersPhone, farmersEmail, password } = req.body;
 
   // Check if all fields are filled
@@ -162,4 +162,4 @@ const logoutUser = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, null, "User logged out successfully", true));
 });
 
-export { registeruser, loginuser, logoutUser };
+export { signupUser, loginuser, logoutUser };

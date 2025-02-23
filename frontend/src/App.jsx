@@ -1,18 +1,19 @@
 import React from 'react';
 import './App.css';
-import Navbar from './components/NavBar';
+import Navbar from './components/Homepage/NavBar';
 
 import Login from './components/Login/Login';
-import Signup from './components/Signup/Signup';
+import Signup from './components/Signup/Signup'; // Updated path
 
-import Hero from './components/Hero';
-import Introduction from './components/Introduction';
-import FruitsVegetables from './components/FruitsVegetables';
-import OurProjects from './components/OurProjects';
-import Blog from './components/Blog';
-import Modern from './components/modern';
-import ContactUs from './components/ContactUs';
-import Leader from './components/Leader';
+import Hero from './components/Homepage/Hero';
+import Introduction from './components/Homepage/Introduction';
+import FruitsVegetables from './components/Homepage/FruitsVegetables';
+import OurProjects from './components/Homepage/OurProjects';
+import Blog from './components/Homepage/Blog';
+import Modern from './components/Homepage/modern';
+import ContactUs from './components/Homepage/ContactUs';
+import Leader from './components/Homepage/Leader';
+import RecommendationForm from './components/recommendation/recommendform';
 import { BrowserRouter, createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 function App() {
@@ -40,6 +41,10 @@ function App() {
     {
       path: "/signup",
       element: <><Signup /></>
+    },
+    {
+      path: "/recommend",
+      element: <> <Navbar /><RecommendationForm /></>
     },
     // {
     //   path: "/about",
