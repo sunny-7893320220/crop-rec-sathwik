@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { loginuser, signupUser} from "../controllers/user.controller.js";
+import { loginuser, signupUser,logoutUser} from "../controllers/user.controller.js";
  import { Signupvalidation, loginValidation } from "../middlewares/auth.validation.js";
+import { verifyJWT } from "../middlewares/jwtvalidation.middleware.js";
 
 const router = Router();
 
@@ -8,6 +9,9 @@ router.route("/signup").post(Signupvalidation,signupUser);
 
 router.route("/login").post(loginValidation,loginuser);
 
+router.route("/logout").post (verifyJWT,logoutUser);
+
+router.route("/refresh-token").post(loginuser);
 
 //router.route("/loginuser").post(loginvalidation,loginuser);
 

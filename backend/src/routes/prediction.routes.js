@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { jwtValidation } from "../middlewares/jwtvalidation.middleware.js";
+import { verifyJWT } from "../middlewares/jwtvalidation.middleware.js";
 
 
 const router = Router();
 
-router.route("/products").get(jwtValidation,(req, res) => {
+router.route("/products").get(verifyJWT,(req, res) => {
    res.status(200).json([
     {
         id: 1,
