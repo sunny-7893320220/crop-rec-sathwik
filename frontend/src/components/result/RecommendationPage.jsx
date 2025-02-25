@@ -1,7 +1,11 @@
-import React from 'react';
-import { Droplet, Thermometer, Sprout } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import axios from 'axios';
+import { handleError } from '../../utils/errortost';
+import { Sprout, Tractor ,Shrub,Activity, Thermometer, Droplet, BarChart2, Leaf } from 'lucide-react'; // Import relevant icons
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -13,27 +17,17 @@ const growthPhases = [
   { name: "Final", value: 100 },
 ];
 
-// Doughnut chart data and options (matching your provided chart)
-const doughnutData = {
-  datasets: [{
-    data: [25.6, 32.0, 23.8, 9.9, 8.7], // Percentages from your chart
-    backgroundColor: ['#1E90FF', '#32CD32', '#FFA500', '#FF4500', '#9370DB'], // Blue, Green, Orange, Red, Purple
-    borderWidth: 0,
-  }],
-  labels: ['Series-1', 'Series-2', 'Series-3', 'Series-4', 'Series-5']
-};
-
 const doughnutOptions = {
-  cutout: '50%', // Doughnut style
+  cutout: '50%',
   plugins: {
     legend: {
-      position: 'bottom', // Legend at the bottom like your chart
+      position: 'bottom',
       labels: {
         boxWidth: 20,
         padding: 10,
         font: {
           size: 12,
-          color: '#000000' // Black text for legend
+          color: '#000000'
         }
       }
     },
@@ -42,83 +36,177 @@ const doughnutOptions = {
 };
 
 export default function RecommendationPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const initialRecommendation = location.state?.recommendation;
+  const [recommendationData, setRecommendationData] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const getRecommendedData = async () => {
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (!accessToken) {
+          handleError('Please log in to access crop recommendations');
+          navigate('/login');
+          return;
+        }
+
+        if (!initialRecommendation) {
+          handleError('No Recommendation Data Found');
+          return;
+        }
+
+        const response = await axios.get(`http://localhost:8000/api/v1/crop/getcrop/${initialRecommendation}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        // Extract the 'data' object from the response
+        const resultData = response.data.data; // Note the nested 'data' key
+        setRecommendationData(resultData);
+        setError(null);
+
+      } catch (error) {
+        const errorMessage = error.message || "Failed to get crop recommendation";
+        setError(errorMessage);
+        handleError(errorMessage);
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    if (initialRecommendation) {
+      getRecommendedData();
+    } else {
+      setError("No Recommendation Data Found");
+    }
+  }, [initialRecommendation, navigate]);
+
+  // Loading state
+  if (!recommendationData && !error) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // Error state
+  if (error) {
+    return <div className="min-h-screen flex items-center justify-center">Error: {error}</div>;
+  }
+
+  // Success state with data
+  const { imageUrl, scientificName, name, optimalConditions, doughnutData, growthCycle, yield: harvestYield } = recommendationData;
+
+  // Use the doughnutData from the API response
+  const chartData = {
+    labels: doughnutData.labels,
+    datasets: doughnutData.datasets
+  };
+
   return (
     <div className="min-h-screen bg-green-900/10 p-4 md:p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
         {/* Left Column */}
         <div className="space-y-6">
-          {/* New crop image and text at the start */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-lg font-semibold mb-4 text-black">Mustard Plant</div>
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center ">
+            {/* <div className="text-5xl font-semibold justify-center items-center mb-4 text-black">{name}</div> */}
             <div className="flex justify-center">
               <img
-                src="https://example.com/mustard-plant.jpg" // Replace with your actual crop image URL
-                alt="Mustard Plant"
-                className="object-cover w-48 h-48 rounded-lg"
+                src={imageUrl || ""}
+                alt={name || ""}
+                className="object-cover w-[90%] h-[80%] rounded-lg mx-auto"
+               
               />
             </div>
-            <p className="mt-4 text-center text-black">
-              This is a mustard plant (Brassica juncea) thriving in a hydroponic system.
+            <p className="mt-4 text-center text-black font-bold text-2xl">
+              This is a {name || ""} ({scientificName || ""})
             </p>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-lg font-semibold mb-4 text-black">Mustard Plant Area</div>
+            <div className="text-lg font-semibold mb-4 text-black">{name} Area</div>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Droplet className="w-6 h-6 stroke-green-900 fill-none" />
                 </div>
-                <div className="text-2xl font-bold text-black">64%</div>
+                <div className="text-2xl font-bold text-black">{optimalConditions.humidity.split('-')[0]}</div>
                 <div className="text-sm text-black">Humidity</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Thermometer className="w-6 h-6 stroke-green-900 fill-none" />
                 </div>
-                <div className="text-2xl font-bold text-black">3.4</div>
+                <div className="text-2xl font-bold text-black">{optimalConditions.pH.split('-')[0]}</div>
                 <div className="text-sm text-black">Water pH</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Sprout className="w-6 h-6 stroke-green-900 fill-none" />
                 </div>
-                <div className="text-2xl font-bold text-black">1.8</div>
+                <div className="text-2xl font-bold text-black">1.8</div> {/* Placeholder - update if API provides this */}
                 <div className="text-sm text-black">Growth Rate</div>
               </div>
             </div>
           </div>
 
-          {/* Doughnut chart remains at the bottom of left column */}
           <div className="bg-white rounded-lg shadow p-6">
+               <div className="text-4xl font-semibold justify-center items-center mb-4 text-black">Water Usage Details</div>
             <div className="w-full max-w-md mx-auto">
-              <Doughnut data={doughnutData} options={doughnutOptions} />
+              <Doughnut data={chartData} options={doughnutOptions} />
             </div>
           </div>
         </div>
 
-        {/* Right Column (unchanged) */}
+        {/* Right Column */}
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-lg font-semibold mb-4 text-black">Mustard Plant Information</div>
-            <div className="space-y-4 text-black">
-              <p className="text-black"><strong className='text-black'>Crop Type:</strong> Mustard (Brassica juncea)</p>
-              <p className="text-black"><strong className='text-black'>Growth Cycle:</strong> 90-120 days</p>
-              <p className="text-black"><strong className='text-black'>Optimal Conditions:</strong></p>
-              <ul className="list-disc pl-5 text-black">
-                <li className='text-black'>Temperature: 15-25°C</li>
-                <li className='text-black'>Humidity: 60-70%</li>
-                <li className='text-black'>pH Level: 6.0-7.5</li>
-              </ul>
-              <p className="text-black"><strong>Harvest Yield:</strong> 800-1200 kg/acre (average)</p>
-            </div>
+            <div className="text-lg font-semibold mb-4 text-black">{name} Information</div>
+
+
+// Inside your component's return statement:
+<div className="space-y-4 text-[#1A1A1A]"> {/* Dark gray text for consistency */}
+  <p className="flex items-center">
+    <Sprout className="w-5 h-5 mr-2" fill="#40801b" stroke="none" /> {/* Filled icon for Crop Type */}
+    <strong className="text-[#40801b]">Crop Type:</strong>
+    <span className="ml-1 text-[#1A1A1A]">{name} ({scientificName})</span>
+  </p>
+  <p className="flex items-center">
+  <Shrub className="w-5 h-5 mr-2" fill="#40801b" stroke="none"/>
+    <strong className="text-[#40801b]">Growth Cycle:</strong>
+    <span className="ml-1 text-[#1A1A1A]">{growthCycle}</span>
+  </p>
+  <p className="flex items-center">
+    <Leaf className="w-5 h-5 mr-2" fill="#40801b" stroke="none" /> {/* Filled icon for Optimal Conditions */}
+    <strong className="text-[#40801b]">Optimal Conditions:</strong>
+  </p>
+  <ul className="list-disc pl-8 text-[#1A1A1A] " >
+    <li className="flex items-center text-black py-2"> 
+       <Thermometer className="w-6 h-6 stroke-green-900 fill-none" />
+     <span className='px-3 text-black text-[17px]'> Temperature: {optimalConditions.temperature}</span>
+    </li>
+    <li className="flex items-center text-black ">
+    <Droplet  className="w-6 h-6 stroke-green-900 fill-none"/>
+    <span className='px-3 text-black text-[17px]'> Humidity: {optimalConditions.humidity}</span>
+    </li>
+    <li className="flex items-center text-black py-2">
+    <Activity  className="w-6 h-6 stroke-green-900 fill-none" /> {/* Reusing Droplet for pH */}
+    <span className='px-3 text-black text-[17px]'> pH Level: {optimalConditions.pH}</span>
+    </li>
+  </ul>
+  <div className="flex items-center bg-[#f7c35f] px-2 py-3 rounded-md">
+    <Tractor  className="w-15 h-15 mr-2" fill="#000000" stroke="none" /> {/* Filled icon for Harvest Yield */}
+    <strong className="text-[#000000] text-[17px]">Harvest Yield:</strong>
+    <span className="px-4 text-[#ffffff] text-[17px] font-bold ">{harvestYield}</span>
+  </div>
+</div>
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
             <div className="h-[200px] w-full mb-4">
               <div className="relative h-full">
                 {growthPhases.map((phase, index) => (
-                  <div 
+                  <div
                     key={phase.name}
                     className="absolute"
                     style={{

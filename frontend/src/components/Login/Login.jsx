@@ -9,59 +9,59 @@ import { handleError, handleSuccess } from '../../utils/errortost';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types'; // Added for prop type checking
 
-const Login = ({ setIsAuthenticated }) => {
+const Login = ({setIsAuthenticated}) => { 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const navigate = useNavigate();
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
+        // Validation logic remains the same
         if (!username || !password) {
-            handleError('Please fill all the fields');
+            await handleError('Please fill all the fields');
             return;
         }
-
+    
         if (!termsAccepted) {
-            handleError('Please accept the terms and conditions');
+            await handleError('Please accept the terms and conditions');
             return;
         }
-
+    
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const phoneRegex = /^\d{10}$/;
         let loginData;
-
+    
         if (emailRegex.test(username)) {
             loginData = { farmersEmail: username, password };
         } else if (phoneRegex.test(username)) {
             loginData = { farmersPhone: username, password };
         } else {
-            handleError('Please enter a valid email or phone number');
+            await handleError('Please enter a valid email or phone number');
             return;
         }
-
+    
         try {
-            const response = await axios.post('http://localhost:8000/api/v1/auth/login', loginData);
-            
+            const response = await axios.post(
+                'http://localhost:8000/api/v1/auth/login',
+                loginData,
+                { withCredentials: true }
+            );
+    
             if (response?.data?.success) {
-                handleSuccess('Login Successful');
                 localStorage.setItem('accessToken', response.data.data.accessToken);
                 localStorage.setItem('farmersName', response.data.data.user.farmersName);
+                setIsAuthenticated(true);
                 
-                // Check if setIsAuthenticated exists before calling it
-                if (typeof setIsAuthenticated === 'function') {
-                    setIsAuthenticated(true);
-                } else {
-                    console.warn('setIsAuthenticated is not a function');
-                }
+                // Wait for toast to complete before navigating
+                await handleSuccess('Login Successful');
                 navigate('/');
             } else {
-                handleError(response?.data?.message || 'Login failed');
+                await handleError(response?.data?.message || 'Login failed');
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'An error occurred during login';
-            handleError(errorMessage);
+            await handleError(errorMessage);
             console.error('Login error:', error);
         }
     };

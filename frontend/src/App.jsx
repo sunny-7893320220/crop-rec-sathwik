@@ -84,8 +84,6 @@
 // // },{},{},{}
 // // ]) inka manam retur lo <RouterProvider router={router} /> ani pass chestham
 
-
-
 import React, { useEffect } from 'react';
 import './App.css';
 import Navbar from './components/Homepage/NavBar';
@@ -102,16 +100,24 @@ import Leader from './components/Homepage/Leader';
 import RecommendationForm from './components/recommendation/recommendform';
 import RecommendationPage from './components/result/RecommendationPage';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Function to check initial auth state
+const getInitialAuthState = () => {
+  const token = localStorage.getItem('accessToken');
+  return !!token; // Returns true if token exists, false otherwise
+};
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(getInitialAuthState);
 
-  // Check for existing authentication on mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      // Optionally verify token with backend here
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
   }, []);
 
@@ -130,7 +136,7 @@ function App() {
         <PrivateRoute 
           element={
             <>
-              <Navbar />
+              <Navbar setIsAuthenticated={setIsAuthenticated} />
               <Hero />
               <Introduction />
               <FruitsVegetables />
@@ -166,7 +172,7 @@ function App() {
         <PrivateRoute 
           element={
             <>
-              <Navbar />
+              <Navbar setIsAuthenticated={setIsAuthenticated} />
               <RecommendationForm />
             </>
           }
@@ -179,7 +185,7 @@ function App() {
         <PrivateRoute 
           element={
             <>
-              <Navbar />
+              <Navbar setIsAuthenticated={setIsAuthenticated} />
               <RecommendationPage />
             </>
           }
@@ -189,7 +195,20 @@ function App() {
   ]);
 
   return (
-    <RouterProvider router={router} />
+    <>
+      <RouterProvider router={router} />
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+    </>
   );
 }
 

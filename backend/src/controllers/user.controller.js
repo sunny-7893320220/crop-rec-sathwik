@@ -123,9 +123,11 @@ const loginuser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production", // False in dev
+    sameSite: "lax",
   };
 
+  console.log("Setting cookies with options:", options);
   // return res
   //   .status(200)
   //   .cookie("refreshToken", refreshToken,"accessToken", accessToken, options)
